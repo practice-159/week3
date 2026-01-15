@@ -8,7 +8,11 @@ import Table from "./components/Table";
 import type { productType } from "./types/productType";
 
 const App = () => {
-  // 位置不會變了-----------------------------------------------
+  // week1 - 產品列表
+  const [productList, setProductList] = useState<productType[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<productType | null>(
+    null,
+  );
 
   // week2 - .env 的資訊
   const API_BASE_URL = import.meta.env.VITE_API_BASE;
@@ -19,12 +23,6 @@ const App = () => {
     baseURL: API_BASE_URL,
   });
 
-  // week1 - 產品列表
-  const [productList, setProductList] = useState<productType[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<productType | null>(
-    null,
-  );
-
   // week2 - 驗證登入狀態
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
@@ -33,7 +31,7 @@ const App = () => {
     verifyAuthentication();
   }, []);
 
-  // week2 - 檢查登入狀態
+  // week2 - 檢查登入狀態api
   const verifyAuthentication = async () => {
     try {
       const token = document.cookie
@@ -76,7 +74,36 @@ const App = () => {
     }
   };
 
-  // 位置不會變了-----------------------------------------------
+  // week3 - 產品資料
+  const INITIAL_TEMPLATE_DATA = {
+    title: "",
+    category: "",
+    origin_price: "",
+    price: "",
+    unit: "",
+    description: "",
+    content: "",
+    is_enabled: "",
+    imageUrl: "",
+    imagesUrl: [""],
+  };
+
+  // week3 - Modal控制相關狀態
+  const productModalRef = useRef<HTMLDivElement | null>(null);
+  const productModal = useRef<Modal | null>(null);
+  const [modalType, setModalType] = useState(""); // "create", "edit", "delete"
+
+  // week3 - 產品資料模板
+  const [templateData, setTemplateData] = useState(INITIAL_TEMPLATE_DATA);
+
+  // week3 - 初始化時綁定 Modal
+  useEffect(() => {
+    if (productModalRef.current) {
+      productModal.current = new Modal(productModalRef.current, {
+        keyboard: false,
+      });
+    }
+  }, [isAuthenticated]);
 
   // 要移動位置的 ++++++++++++++++++++++++++++++++++++++
 
@@ -125,41 +152,6 @@ const App = () => {
   };
 
   // 要移動位置的 ++++++++++++++++++++++++++++++++++++++
-  // /////////////////////////////////////////////////////////////////////
-  // /////////////////////////////////////////////////////////////////////
-  // /////////////////////////////////////////////////////////////////////
-  // /////////////////////////////////////////////////////////////////////
-
-  // week3 - Modal控制相關狀態
-  const productModalRef = useRef<HTMLDivElement | null>(null);
-  const productModal = useRef<Modal | null>(null);
-  const [modalType, setModalType] = useState(""); // "create", "edit", "delete"
-
-  // week3 - 產品資料
-  const INITIAL_TEMPLATE_DATA = {
-    title: "",
-    category: "",
-    origin_price: "",
-    price: "",
-    unit: "",
-    description: "",
-    content: "",
-    is_enabled: "",
-    imageUrl: "",
-    imagesUrl: [""],
-  };
-
-  // week3 - 初始化時綁定 Modal
-  useEffect(() => {
-    if (productModalRef.current) {
-      productModal.current = new Modal(productModalRef.current, {
-        keyboard: false,
-      });
-    }
-  }, [isAuthenticated]);
-
-  // week3 - 產品資料模板
-  const [templateData, setTemplateData] = useState(INITIAL_TEMPLATE_DATA);
 
   return (
     <React.Fragment>
@@ -185,7 +177,6 @@ const App = () => {
               <Table
                 productList={productList}
                 setSelectedProduct={setSelectedProduct}
-                // deleteProduct={deleteProduct}
                 INITIAL_TEMPLATE_DATA={INITIAL_TEMPLATE_DATA}
                 productModal={productModal}
                 setTemplateData={setTemplateData}
@@ -216,4 +207,4 @@ const App = () => {
 
 export default App;
 
-// 358
+// 358 > 210

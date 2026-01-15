@@ -1,7 +1,5 @@
 import axios from "axios";
 
-import type { productType } from "../types/productType";
-
 const ProductModalComponent = ({
   templateData,
   selectedProduct,

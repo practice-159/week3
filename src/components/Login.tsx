@@ -1,4 +1,3 @@
-import axios from "axios";
 import { Fragment, useState } from "react";
 
 const Login = ({ fetchProducts, setIsAuthenticated, axiosInstance }: any) => {

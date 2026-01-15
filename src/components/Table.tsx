@@ -1,5 +1,4 @@
-import type { Modal } from "bootstrap";
-import { Fragment, type RefObject } from "react";
+import { Fragment } from "react";
 
 import type { productType } from "../types/productType";
 
@@ -17,7 +16,6 @@ import type { productType } from "../types/productType";
 const Table = ({
   productList,
   setSelectedProduct,
-  // deleteProduct,
   INITIAL_TEMPLATE_DATA,
   productModal,
   setTemplateData,
