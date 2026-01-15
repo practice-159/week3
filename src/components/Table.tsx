@@ -17,12 +17,60 @@ import type { productType } from "../types/productType";
 const Table = ({
   productList,
   setSelectedProduct,
-  deleteProduct,
-  openModal,
+  // deleteProduct,
+  INITIAL_TEMPLATE_DATA,
+  productModal,
+  setTemplateData,
+  setModalType,
+  axiosInstance,
+  API_PATH,
+  fetchProducts,
 }: any) => {
+  // week3 - 移除產品api(要移到table component)
+  const deleteProduct = async (id: string) => {
+    try {
+      const token = document.cookie
+        .split(";")
+        .find((txt) => txt.startsWith("someCookieName="))
+        ?.split("=")[1];
+      if (token) {
+        axiosInstance.defaults.headers.common["Authorization"] = token;
+        const response = await axiosInstance.delete(
+          `/v2/api/${API_PATH}/admin/product/${id}`,
+        );
+        console.log(response);
+        // 移除產品後重新發送一次取得產品的request，讓畫面顯示最新的資料
+        fetchProducts();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // week3 - 開啟 Modal
+  const openModal = (product: any, type: any) => {
+    if (productModal.current) {
+      // console.log(product);
+      setTemplateData((prevData) => ({ ...prevData, ...product }));
+      setModalType(type);
+      productModal.current.show();
+    }
+  };
   return (
     <Fragment>
       <h2>產品列表</h2>
+      {/* 新增產品的button */}
+      <div className="text-end">
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => {
+            openModal(INITIAL_TEMPLATE_DATA, "create");
+          }}
+        >
+          新增產品
+        </button>
+      </div>
       <table className="table">
         <thead>
           <tr>
