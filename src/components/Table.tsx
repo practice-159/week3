@@ -2,31 +2,27 @@ import type { Modal } from "bootstrap";
 import { Fragment, type RefObject } from "react";
 
 import type { productType } from "../types/productType";
-import EditProduct from "./EditProduct";
 
-type TableProps = {
-  productList: Array<productType>;
-  setSelectedProduct: (p: productType) => void;
-  deleteProduct: (p: string) => void;
-  updateProduct: (p: string, data: any) => void;
-  editProductModalRef: RefObject<HTMLDivElement | null>;
-  editProductModal: RefObject<Modal | null>;
-  selectedProduct: productType | null;
-  openEditProductModal: () => void;
-};
+// type TableProps = {
+//   productList: Array<productType>;
+//   setSelectedProduct: (p: productType) => void;
+//   deleteProduct: (p: string) => void;
+//   updateProduct: (p: string, data: any) => void;
+//   productModalRef: RefObject<HTMLDivElement | null>;
+//   productModal: RefObject<Modal | null>;
+//   selectedProduct: productType | null;
+//   openModal: () => void;
+// };
 
 const Table = ({
   productList,
   setSelectedProduct,
   deleteProduct,
-  updateProduct,
-  editProductModalRef,
-  editProductModal,
-  selectedProduct,
-  openEditProductModal,
-}: TableProps) => {
+  openModal,
+}: any) => {
   return (
     <Fragment>
+      <h2>產品列表</h2>
       <table className="table">
         <thead>
           <tr>
@@ -35,8 +31,8 @@ const Table = ({
             <th scope="col">原價</th>
             <th scope="col">售價</th>
             <th scope="col">是否啟用</th>
-            <th scope="col">查看細節</th>
-            <th scope="col">修改</th>
+            {/* <th scope="col">查看細節</th> */}
+            <th scope="col">編輯</th>
           </tr>
         </thead>
 
@@ -48,50 +44,41 @@ const Table = ({
                 <th>{product.title}</th>
                 <td>{product.origin_price}</td>
                 <td>{product.price}</td>
-                <td>{product.is_enabled ? "啟用" : "不啟用"}</td>
-                <td>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => {
-                      setSelectedProduct(product);
-                    }}
-                  >
-                    查看
-                  </button>
+                <td className={product.is_enabled ? "text-success" : ""}>
+                  {product.is_enabled ? "啟用" : "未啟用"}
                 </td>
                 <td>
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      openEditProductModal();
-                    }}
+                  <div
+                    className="btn-group"
+                    role="group"
+                    aria-label="Basic example"
                   >
-                    編輯
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger btn-sm"
-                    onClick={() => {
-                      deleteProduct(product.id);
-                    }}
-                  >
-                    刪除
-                  </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary btn-sm"
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        openModal(product, "edit");
+                      }}
+                    >
+                      編輯
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger btn-sm"
+                      onClick={() => {
+                        deleteProduct(product.id);
+                      }}
+                    >
+                      刪除
+                    </button>
+                  </div>
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
-      <EditProduct
-        selectProduct={selectedProduct}
-        editProductModalRef={editProductModalRef}
-        editProductModal={editProductModal}
-        editProduct={updateProduct}
-      />
     </Fragment>
   );
 };

@@ -3,8 +3,7 @@ import { Modal } from "bootstrap";
 import React, { useEffect, useRef, useState } from "react";
 
 import type { productType } from "../types/productType";
-import Card from "./Card";
-import NewProduct from "./NewProduct";
+import ProductModalComponent from "./ProductModalComponent";
 import Table from "./Table";
 
 const Login = () => {
@@ -29,87 +28,21 @@ const Login = () => {
   });
 
   // week3
-  // 新增產品
-  const newProductModalRef = useRef<HTMLDivElement | null>(null);
-  const newProductModal = useRef<Modal | null>(null);
-  // 修改產品
-  const editProductModalRef = useRef<HTMLDivElement | null>(null);
-  const editProductModal = useRef<Modal | null>(null);
-
-  // week1
-  const [selectedProduct, setSelectedProduct] = useState<productType | null>(
-    null,
-  );
-  const [productList, setProductList] = useState<productType[]>([]);
-
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAccount((preData) => {
-      const { name, value } = e.target;
-      return { ...preData, [name]: value };
-    });
+  // 產品資料
+  const INITIAL_TEMPLATE_DATA = {
+    title: "",
+    category: "",
+    origin_price: "",
+    price: "",
+    unit: "",
+    description: "",
+    content: "",
+    is_enabled: "",
+    imageUrl: "",
+    imagesUrl: [""],
   };
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAccount((preData) => {
-      const { name, value } = e.target;
-      return { ...preData, [name]: value };
-    });
-  };
-
-  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    try {
-      e.preventDefault();
-      let res = await axiosInstance.post(`/v2/admin/signin`, account);
-      const { token, expired } = res.data;
-      document.cookie = `someCookieName=${token}; expires=${new Date(expired)}`;
-      axiosInstance.defaults.headers.common["Authorization"] = token;
-      fetchProducts();
-      setIsAuthenticated(true);
-    } catch (error) {
-      setIsAuthenticated(false);
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    verifyAuthentication();
-  }, []);
-
-  // week2 - 檢查登入狀態
-  const verifyAuthentication = async () => {
-    try {
-      const token = document.cookie
-        .split(";")
-        .find((txt) => txt.startsWith("someCookieName="))
-        ?.split("=")[1];
-      if (token) {
-        axiosInstance.defaults.headers.common["Authorization"] = token;
-        let response = await axiosInstance.post("/v2/api/user/check");
-        // console.log(response);
-        if (response.data.success) {
-          setIsAuthenticated(true);
-          fetchProducts();
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // week2 - 取得產品
-  const fetchProducts = async () => {
-    try {
-      const response = await axiosInstance.get(
-        `/v2/api/${API_PATH}/admin/products`,
-      );
-      setProductList(response.data.products);
-      console.log(response);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // week3 - 新增產品
+  // week3 - 新增產品的api(後面要移到modal component)
   const createProduct = async (data: Omit<productType, "id" | "num">) => {
     try {
       const token = document.cookie
@@ -129,6 +62,42 @@ const Login = () => {
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  // week3
+  // Modal控制相關狀態
+  const productModalRef = useRef<HTMLDivElement | null>(null);
+  const productModal = useRef<Modal | null>(null);
+  const [modalType, setModalType] = useState(""); // "create", "edit", "delete"
+
+  // week2
+  useEffect(() => {
+    verifyAuthentication();
+  }, []);
+
+  // week3 - 初始化時綁定 Modal
+  // * 使用JS 操作 Modal
+  useEffect(() => {
+    if (productModalRef.current) {
+      productModal.current = new Modal(productModalRef.current, {
+        keyboard: false,
+      });
+    }
+  }, [isAuthenticated]);
+
+  // week3
+  // 產品資料模板
+  const [templateData, setTemplateData] = useState(INITIAL_TEMPLATE_DATA);
+
+  // week3
+  // 開啟 Modal
+  const openModal = (product: any, type: any) => {
+    if (productModal.current) {
+      // console.log(product);
+      setTemplateData((prevData) => ({ ...prevData, ...product }));
+      setModalType(type);
+      productModal.current.show();
     }
   };
 
@@ -174,25 +143,74 @@ const Login = () => {
     }
   };
 
-  // * 使用JS 操作 Modal
-  useEffect(() => {
-    if (newProductModalRef.current) {
-      newProductModal.current = new Modal(newProductModalRef.current);
-    }
-    if (editProductModalRef.current) {
-      editProductModal.current = new Modal(editProductModalRef.current);
-    }
-  }, [isAuthenticated]);
+  // week1
+  const [selectedProduct, setSelectedProduct] = useState<productType | null>(
+    null,
+  );
+  const [productList, setProductList] = useState<productType[]>([]);
 
-  const openNewProductModal = () => {
-    if (newProductModal.current) {
-      newProductModal.current.show();
+  // week1
+  const handleLoginInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAccount((preData) => {
+      const { name, value } = e.target;
+      return { ...preData, [name]: value };
+    });
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    try {
+      e.preventDefault();
+      let res = await axiosInstance.post(`/v2/admin/signin`, account);
+      const { token, expired } = res.data;
+      document.cookie = `someCookieName=${token}; expires=${new Date(expired)}`;
+      axiosInstance.defaults.headers.common["Authorization"] = token;
+      fetchProducts();
+      setIsAuthenticated(true);
+    } catch (error) {
+      setIsAuthenticated(false);
+      console.log(error);
     }
   };
 
-  const openEditProductModal = () => {
-    if (editProductModal.current) {
-      editProductModal.current.show();
+  // week2 - 檢查登入狀態
+  const verifyAuthentication = async () => {
+    try {
+      const token = document.cookie
+        .split(";")
+        .find((txt) => txt.startsWith("someCookieName="))
+        ?.split("=")[1];
+      if (token) {
+        axiosInstance.defaults.headers.common["Authorization"] = token;
+        let response = await axiosInstance.post("/v2/api/user/check");
+        if (response.data.success) {
+          setIsAuthenticated(true);
+          fetchProducts();
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // week2 - 取得產品
+  const fetchProducts = async () => {
+    try {
+      const token = document.cookie
+        .split(";")
+        .find((txt) => txt.startsWith("someCookieName="))
+        ?.split("=")[1];
+      console.log("token:" + token);
+      if (token) {
+        const response = await axiosInstance.get(
+          `/v2/api/${API_PATH}/admin/products`,
+        );
+        setProductList(response.data.products);
+        console.log(response);
+      }
+    } catch (error) {
+      console.log("又該是這裡");
+      console.error(error);
+      console.log("又該是這裡");
     }
   };
 
@@ -209,26 +227,28 @@ const Login = () => {
                 }}
               >
                 <div className="form-group">
-                  <label htmlFor="exampleInputEmail1">Email address</label>
+                  <label htmlFor="username">Email address</label>
                   <input
                     type="email"
                     className="form-control"
                     name="username"
+                    id="username"
                     aria-describedby="emailHelp"
                     placeholder="Enter email"
                     value={account.username}
-                    onChange={handleUsernameChange}
+                    onChange={(e) => handleLoginInputChange(e)}
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="exampleInputPassword1">Password</label>
+                  <label htmlFor="password">Password</label>
                   <input
                     type="password"
                     className="form-control"
                     name="password"
+                    id="password"
                     placeholder="Password"
                     value={account.password}
-                    onChange={handlePasswordChange}
+                    onChange={(e) => handleLoginInputChange(e)}
                   />
                 </div>
                 <button type="submit" className="btn btn-primary mt-3">
@@ -241,61 +261,43 @@ const Login = () => {
       ) : (
         // 有登入的狀態
         <div className="container mt-5">
-          <div className="row row-cols-2">
+          <div className="row">
             <div className="col text-center">
+              {/* 新增產品的button */}
               <div className="text-end">
                 <button
                   type="button"
                   className="btn btn-primary"
-                  // data-bs-toggle="modal"
-                  // data-bs-target="#exampleModal"
                   onClick={() => {
-                    openNewProductModal();
+                    openModal(INITIAL_TEMPLATE_DATA, "create");
                   }}
                 >
                   新增產品
                 </button>
               </div>
-              {/* 確認登入狀態 */}
-              {/* <button
-                type="button"
-                className="btn btn-danger"
-                onClick={() => {
-                  checkLoginStatus();
-                }}
-              >
-                確認登入狀態
-              </button> */}
-              {/* 左側列表 */}
-              {/* Modal */}
-
               {/* 產品列表 */}
               <Table
                 productList={productList}
                 setSelectedProduct={setSelectedProduct}
                 deleteProduct={deleteProduct}
                 updateProduct={updateProduct}
-                editProductModalRef={editProductModalRef}
-                editProductModal={editProductModal}
+                productModalRef={productModalRef}
+                productModal={productModal}
                 selectedProduct={selectedProduct}
-                openEditProductModal={openEditProductModal}
+                openModal={openModal}
               />
-
               {/* Modal */}
-              <NewProduct
-                newProductModalRef={newProductModalRef}
+              <ProductModalComponent
+                templateData={templateData}
+                selectedProduct={selectedProduct}
+                productModalRef={productModalRef}
+                productModal={productModal}
+                updateProduct={updateProduct}
+                modalType={modalType}
+                setTemplateData={setTemplateData}
+                fetchProducts={fetchProducts}
                 createProduct={createProduct}
-                newProductModal={newProductModal}
               />
-            </div>
-            <div className="col">
-              {/* 右側列表 */}
-              {selectedProduct && (
-                <React.Fragment>
-                  <div className="fs-2">商品明細</div>
-                  <Card selectedProduct={selectedProduct} />
-                </React.Fragment>
-              )}
             </div>
           </div>
         </div>
@@ -305,3 +307,5 @@ const Login = () => {
 };
 
 export default Login;
+
+// 358
