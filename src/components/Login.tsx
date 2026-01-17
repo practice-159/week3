@@ -22,7 +22,7 @@ const Login = ({ fetchProducts, setIsAuthenticated, axiosInstance }: any) => {
   const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      let res = await axiosInstance.post(`/v2/admin/signin`, account);
+      const res = await axiosInstance.post(`/v2/admin/signin`, account);
       const { token, expired } = res.data;
       document.cookie = `someCookieName=${token}; expires=${new Date(expired)}`;
       axiosInstance.defaults.headers.common["Authorization"] = token;
@@ -35,42 +35,42 @@ const Login = ({ fetchProducts, setIsAuthenticated, axiosInstance }: any) => {
   };
 
   return (
-    <Fragment>
-      <form
-        onSubmit={(e) => {
-          handleLoginSubmit(e);
-        }}
-      >
-        <div className="form-group">
-          <label htmlFor="username">Email address</label>
-          <input
-            type="email"
-            className="form-control"
-            name="username"
-            id="username"
-            aria-describedby="emailHelp"
-            placeholder="Enter email"
-            value={account.username}
-            onChange={(e) => handleLoginInputChange(e)}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            className="form-control"
-            name="password"
-            id="password"
-            placeholder="Password"
-            value={account.password}
-            onChange={(e) => handleLoginInputChange(e)}
-          />
-        </div>
-        <button type="submit" className="btn btn-primary mt-3">
-          登入
-        </button>
-      </form>
-    </Fragment>
+    <form
+      onSubmit={(e) => {
+        handleLoginSubmit(e);
+      }}
+    >
+      <div className="form-group">
+        {/* 帳號 */}
+        <label htmlFor="username">Email address</label>
+        <input
+          type="email"
+          id="username"
+          name="username"
+          className="form-control"
+          value={account.username}
+          placeholder="Enter email"
+          aria-describedby="emailHelp"
+          onChange={(e) => handleLoginInputChange(e)}
+        />
+      </div>
+      <div className="form-group">
+        {/* 密碼 */}
+        <label htmlFor="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          placeholder="Password"
+          className="form-control"
+          value={account.password}
+          onChange={(e) => handleLoginInputChange(e)}
+        />
+      </div>
+      <button type="submit" className="btn btn-primary mt-3">
+        登入
+      </button>
+    </form>
   );
 };
 

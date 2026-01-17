@@ -2,10 +2,11 @@ import axios from "axios";
 import { Modal } from "bootstrap";
 import React, { useEffect, useRef, useState } from "react";
 
+import type { productType } from "./types/productType";
+
 import Login from "./components/Login";
 import ProductModalComponent from "./components/ProductModalComponent";
 import Table from "./components/Table";
-import type { productType } from "./types/productType";
 
 const App = () => {
   // week1 - 產品列表
@@ -26,10 +27,24 @@ const App = () => {
   // week2 - 驗證登入狀態
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // week2 - 檢查token自動登入
-  useEffect(() => {
-    verifyAuthentication();
-  }, []);
+  // week2 - 取得產品api
+  const fetchProducts = async () => {
+    try {
+      const token = document.cookie
+        .split(";")
+        .find((txt) => txt.startsWith("someCookieName="))
+        ?.split("=")[1];
+      if (token) {
+        axiosInstance.defaults.headers.common["Authorization"] = token;
+        const response = await axiosInstance.get(
+          `/v2/api/${API_PATH}/admin/products`,
+        );
+        setProductList(response.data.products);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   // week2 - 檢查登入狀態api
   const verifyAuthentication = async () => {
@@ -40,7 +55,7 @@ const App = () => {
         ?.split("=")[1];
       if (token) {
         axiosInstance.defaults.headers.common["Authorization"] = token;
-        let response = await axiosInstance.post("/v2/api/user/check");
+        const response = await axiosInstance.post("/v2/api/user/check");
         if (response.data.success) {
           setIsAuthenticated(true);
           fetchProducts();
@@ -51,28 +66,10 @@ const App = () => {
     }
   };
 
-  // week2 - 取得產品api
-  const fetchProducts = async () => {
-    try {
-      const token = document.cookie
-        .split(";")
-        .find((txt) => txt.startsWith("someCookieName="))
-        ?.split("=")[1];
-      console.log("這裡是fetch");
-      console.log("token:" + token);
-      if (token) {
-        const response = await axiosInstance.get(
-          `/v2/api/${API_PATH}/admin/products`,
-        );
-        setProductList(response.data.products);
-        console.log(response);
-      }
-    } catch (error) {
-      console.log("這裡是fetch錯誤");
-      console.error(error);
-      console.log("這裡是fetch錯誤");
-    }
-  };
+  // week2 - 檢查token自動登入
+  useEffect(() => {
+    verifyAuthentication();
+  }, []);
 
   // week3 - 產品資料
   const INITIAL_TEMPLATE_DATA = {
@@ -105,54 +102,6 @@ const App = () => {
     }
   }, [isAuthenticated]);
 
-  // 要移動位置的 ++++++++++++++++++++++++++++++++++++++
-
-  // week3 - 新增產品的api(後面要移到modal component)
-  const createProduct = async (data: Omit<productType, "id" | "num">) => {
-    try {
-      const token = document.cookie
-        .split(";")
-        .find((txt) => txt.startsWith("someCookieName="))
-        ?.split("=")[1];
-      if (token) {
-        axiosInstance.defaults.headers.common["Authorization"] = token;
-        let response = await axiosInstance.post(
-          `/v2/api/${API_PATH}/admin/product`,
-          {
-            data: data,
-          },
-        );
-        console.log(response.data.message);
-        fetchProducts();
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  // week3 - 編輯產品api(後面要移到modal component)
-  const updateProduct = async (id: string, data: any) => {
-    try {
-      const token = document.cookie
-        .split(";")
-        .find((txt) => txt.startsWith("someCookieName="))
-        ?.split("=")[1];
-      if (token) {
-        axiosInstance.defaults.headers.common["Authorization"] = token;
-        const response = await axiosInstance.put(
-          `/v2/api/${API_PATH}/admin/product/${id}`,
-          { data: data },
-        );
-        fetchProducts();
-        console.log(response.data.message);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // 要移動位置的 ++++++++++++++++++++++++++++++++++++++
-
   return (
     <React.Fragment>
       {!isAuthenticated ? (
@@ -161,9 +110,9 @@ const App = () => {
           <div className="row justify-content-center align-items-center vh-100">
             <div className="col-3">
               <Login
+                axiosInstance={axiosInstance}
                 fetchProducts={fetchProducts}
                 setIsAuthenticated={setIsAuthenticated}
-                axiosInstance={axiosInstance}
               />
             </div>
           </div>
@@ -175,27 +124,27 @@ const App = () => {
             <div className="col text-center">
               {/* 產品列表 */}
               <Table
+                API_PATH={API_PATH}
                 productList={productList}
-                setSelectedProduct={setSelectedProduct}
-                INITIAL_TEMPLATE_DATA={INITIAL_TEMPLATE_DATA}
                 productModal={productModal}
-                setTemplateData={setTemplateData}
                 setModalType={setModalType}
                 axiosInstance={axiosInstance}
-                API_PATH={API_PATH}
                 fetchProducts={fetchProducts}
+                setTemplateData={setTemplateData}
+                setSelectedProduct={setSelectedProduct}
+                INITIAL_TEMPLATE_DATA={INITIAL_TEMPLATE_DATA}
               />
               {/* Modal */}
               <ProductModalComponent
-                templateData={templateData}
-                selectedProduct={selectedProduct}
-                productModalRef={productModalRef}
-                productModal={productModal}
-                updateProduct={updateProduct}
+                API_PATH={API_PATH}
                 modalType={modalType}
-                setTemplateData={setTemplateData}
+                productModal={productModal}
+                templateData={templateData}
+                axiosInstance={axiosInstance}
                 fetchProducts={fetchProducts}
-                createProduct={createProduct}
+                productModalRef={productModalRef}
+                selectedProduct={selectedProduct}
+                setTemplateData={setTemplateData}
               />
             </div>
           </div>
@@ -207,4 +156,4 @@ const App = () => {
 
 export default App;
 
-// 358 > 210
+// 358 > 161

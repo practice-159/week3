@@ -8,9 +8,9 @@ const Card = ({ selectedProduct }: CardProps) => {
   return (
     <div className="card w-100">
       <img
+        alt={selectedProduct.title}
         src={selectedProduct.imageUrl}
         className="card-img-top top-img "
-        alt={selectedProduct.title}
       />
       <div className="card-body">
         <div className="card-title fs-1">{selectedProduct.title}</div>
@@ -26,9 +26,9 @@ const Card = ({ selectedProduct }: CardProps) => {
             return (
               <img
                 src={img}
-                className="img-thumbnail w-25"
                 key={index}
                 alt={selectedProduct.title}
+                className="img-thumbnail w-25"
               />
             );
           })}

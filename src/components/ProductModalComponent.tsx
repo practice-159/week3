@@ -1,4 +1,4 @@
-import axios from "axios";
+import type { productType } from "../types/productType";
 
 const ProductModalComponent = ({
   templateData,
@@ -7,24 +7,59 @@ const ProductModalComponent = ({
   productModal,
   modalType,
   setTemplateData,
-  updateProduct,
   fetchProducts,
-  createProduct,
+  axiosInstance,
+  API_PATH,
 }: any) => {
-  // .env 的資訊
-  const API_BASE_URL = import.meta.env.VITE_API_BASE;
-  const API_PATH = import.meta.env.VITE_API_PATH;
-  // * 設定全域baseURL
-  const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-  });
-
   // week3 - 設定 input onChange 的 function
   const handleModalInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTemplateData((preData) => {
       const { name, value, type, checked } = e.target;
       return { ...preData, [name]: type === "checkbox" ? checked : value };
     });
+  };
+
+  // week3 - 新增產品api
+  const createProduct = async (data: Omit<productType, "id" | "num">) => {
+    try {
+      const token = document.cookie
+        .split(";")
+        .find((txt) => txt.startsWith("someCookieName="))
+        ?.split("=")[1];
+      if (token) {
+        axiosInstance.defaults.headers.common["Authorization"] = token;
+        const response = await axiosInstance.post(
+          `/v2/api/${API_PATH}/admin/product`,
+          {
+            data: data,
+          },
+        );
+        fetchProducts();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // week3 - 編輯產品api
+  const updateProduct = async (id: string, data: any) => {
+    try {
+      const token = document.cookie
+        .split(";")
+        .find((txt) => txt.startsWith("someCookieName="))
+        ?.split("=")[1];
+      if (token) {
+        axiosInstance.defaults.headers.common["Authorization"] = token;
+        const response = await axiosInstance.put(
+          `/v2/api/${API_PATH}/admin/product/${id}`,
+          { data: data },
+        );
+        fetchProducts();
+        console.log(response.data.message);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // week3 - 設定資料裡面的圖片array
@@ -88,24 +123,24 @@ const ProductModalComponent = ({
   return (
     <div>
       <div
-        className="modal fade"
-        id="exampleModal"
         tabIndex={-1}
-        aria-labelledby="exampleModalLabel"
+        id="exampleModal"
         aria-hidden="true"
         ref={productModalRef}
+        className="modal fade"
+        aria-labelledby="exampleModalLabel"
       >
         <div className="modal-dialog modal-xl">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="exampleModalLabel">
+              <h1 id="exampleModalLabel" className="modal-title fs-5">
                 編輯資料
               </h1>
               <button
                 type="button"
+                aria-label="Close"
                 className="btn-close"
                 data-bs-dismiss="modal"
-                aria-label="Close"
               ></button>
             </div>
             <div className="modal-body">
@@ -116,10 +151,10 @@ const ProductModalComponent = ({
                     <form className="form-floating">
                       <input
                         type="text"
-                        className="form-control"
                         id="imageUrl"
-                        name="imageUrl"
                         placeholder=""
+                        name="imageUrl"
+                        className="form-control"
                         value={templateData.imageUrl}
                         onChange={(e) => {
                           // setImageUrl(e.target.value);
@@ -128,9 +163,9 @@ const ProductModalComponent = ({
                       />
                       <label htmlFor="imageUrl">主圖片</label>
                       <img
-                        src={templateData.imageUrl}
-                        className="w-100"
                         alt=""
+                        className="w-100"
+                        src={templateData.imageUrl}
                       />
                     </form>
                     {/* imagesUrl */}
@@ -139,14 +174,12 @@ const ProductModalComponent = ({
                         (url: string, index: number) => {
                           return (
                             <div key={index}>
-                              <form className="form-floating">
+                              <form className="form-floating mt-3">
                                 <input
                                   type="text"
-                                  className="form-control"
-                                  // id="imagesUrl1"
-                                  // name="imagesUrl1"
-                                  placeholder=""
                                   value={url}
+                                  placeholder=""
+                                  className="form-control"
                                   onChange={(e) => {
                                     handleModalImageChange(
                                       index,
@@ -154,17 +187,29 @@ const ProductModalComponent = ({
                                     );
                                   }}
                                 />
-                                <img src={url} alt="" className="w-100" />
+                                <img
+                                  alt=""
+                                  className="w-100"
+                                  src={url || undefined}
+                                />
                                 <label htmlFor="imagesUrl1">輸入圖片網址</label>
                               </form>
                             </div>
                           );
                         },
                       )}
-                    <button type="button" onClick={handleAddImage}>
+                    <button
+                      type="button"
+                      onClick={handleAddImage}
+                      className="btn btn-outline-primary w-100"
+                    >
                       新增圖片
                     </button>
-                    <button type="button" onClick={handleRemoveImage}>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="btn btn-outline-danger w-100"
+                    >
                       刪除圖片
                     </button>
                   </div>
@@ -172,18 +217,17 @@ const ProductModalComponent = ({
                     {/* title */}
                     <form className="form-floating mb-3">
                       <input
-                        type="text"
-                        className="form-control"
                         id="title"
+                        type="text"
                         name="title"
                         placeholder=""
+                        className="form-control"
                         value={templateData.title}
                         onChange={(e) => {
                           handleModalInputChange(e);
-                          console.log(templateData.title);
                         }}
                       />
-                      <label htmlFor="title">產品名稱</label>
+                      <label htmlFor="title">產品名稱(標題)</label>
                     </form>
                     <div className="row">
                       <div className="col mb-3">
@@ -191,35 +235,34 @@ const ProductModalComponent = ({
                         <form className="form-floating">
                           <input
                             type="text"
-                            className="form-control"
                             id="category"
-                            name="category"
                             placeholder=""
+                            name="category"
+                            className="form-control"
                             value={templateData.category}
                             onChange={(e) => {
-                              // setCategory(e.target.value);
                               handleModalInputChange(e);
                             }}
                           />
-                          <label htmlFor="category">分類</label>
+                          <label htmlFor="category">分類(必填)</label>
                         </form>
                       </div>
                       <div className="col mb-3">
                         {/* unit */}
                         <form className="form-floating">
                           <input
-                            type="text"
-                            className="form-control"
                             id="unit"
                             name="unit"
+                            type="text"
                             placeholder=""
+                            className="form-control"
                             value={templateData.unit}
                             onChange={(e) => {
                               // setUnit(e.target.value);
                               handleModalInputChange(e);
                             }}
                           />
-                          <label htmlFor="unit">單位</label>
+                          <label htmlFor="unit">單位(必填)</label>
                         </form>
                       </div>
                     </div>
@@ -230,35 +273,34 @@ const ProductModalComponent = ({
                         <form className="form-floating">
                           <input
                             type="number"
-                            className="form-control"
+                            placeholder=""
                             id="origin_price"
                             name="origin_price"
-                            placeholder=""
+                            className="form-control"
                             value={templateData.origin_price}
                             onChange={(e) => {
                               // setOriginalPrice(Number.parseInt(e.target.value));
                               handleModalInputChange(e);
                             }}
                           />
-                          <label htmlFor="original_price">原價</label>
+                          <label htmlFor="original_price">原價(必填)</label>
                         </form>
                       </div>
                       <div className="col mb-3">
                         {/* price */}
                         <form className="form-floating">
                           <input
-                            type="number"
-                            className="form-control"
                             id="price"
                             name="price"
+                            type="number"
                             placeholder=""
+                            className="form-control"
                             value={templateData.price}
                             onChange={(e) => {
-                              // setPrice(Number.parseInt(e.target.value));
                               handleModalInputChange(e);
                             }}
                           />
-                          <label htmlFor="price">售價</label>
+                          <label htmlFor="price">售價(必填)</label>
                         </form>
                       </div>
                     </div>
@@ -266,13 +308,12 @@ const ProductModalComponent = ({
                     <form className="form-floating mb-3">
                       <input
                         type="text"
-                        className="form-control"
+                        placeholder=""
                         id="description"
                         name="description"
-                        placeholder=""
+                        className="form-control"
                         value={templateData.description}
                         onChange={(e) => {
-                          // setDescription(e.target.value);
                           handleModalInputChange(e);
                         }}
                       />
@@ -283,10 +324,10 @@ const ProductModalComponent = ({
                     <form className="form-floating mb-3">
                       <input
                         type="text"
-                        className="form-control"
                         id="content"
                         name="content"
                         placeholder=""
+                        className="form-control"
                         value={templateData.content}
                         onChange={(e) => {
                           // setContent(e.target.value);
@@ -300,10 +341,10 @@ const ProductModalComponent = ({
                     <form className="form-floating mb-3">
                       <input
                         type="text"
-                        className="form-control"
+                        placeholder=""
                         id="is_enabled"
                         name="is_enabled"
-                        placeholder=""
+                        className="form-control"
                         checked={templateData.is_enabled}
                         onChange={(e) => {
                           // setIsEnabled(e.target.value);
@@ -318,9 +359,8 @@ const ProductModalComponent = ({
             </div>
             <div className="modal-footer">
               <button
-                type="button"
+                type="submit"
                 className="btn btn-secondary"
-                // data-bs-dismiss="modal"
                 onClick={() => {
                   closeModal();
                 }}
@@ -331,8 +371,6 @@ const ProductModalComponent = ({
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  console.log("編輯成功");
-                  console.log(selectedProduct?.id);
                   handleConfirm(selectedProduct?.id, modalType, {
                     title: templateData.title,
                     category: templateData.category,

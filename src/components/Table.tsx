@@ -18,13 +18,13 @@ const Table = ({
   setSelectedProduct,
   INITIAL_TEMPLATE_DATA,
   productModal,
+  axiosInstance,
   setTemplateData,
   setModalType,
-  axiosInstance,
   API_PATH,
   fetchProducts,
 }: any) => {
-  // week3 - 移除產品api(要移到table component)
+  // week3 - 移除產品api
   const deleteProduct = async (id: string) => {
     try {
       const token = document.cookie
@@ -36,7 +36,6 @@ const Table = ({
         const response = await axiosInstance.delete(
           `/v2/api/${API_PATH}/admin/product/${id}`,
         );
-        console.log(response);
         // 移除產品後重新發送一次取得產品的request，讓畫面顯示最新的資料
         fetchProducts();
       }
@@ -48,7 +47,6 @@ const Table = ({
   // week3 - 開啟 Modal
   const openModal = (product: any, type: any) => {
     if (productModal.current) {
-      // console.log(product);
       setTemplateData((prevData) => ({ ...prevData, ...product }));
       setModalType(type);
       productModal.current.show();
@@ -95,8 +93,8 @@ const Table = ({
                 </td>
                 <td>
                   <div
-                    className="btn-group"
                     role="group"
+                    className="btn-group"
                     aria-label="Basic example"
                   >
                     <button
