@@ -3,12 +3,12 @@ export type productType = {
   content: string;
   description: string;
   id: string;
-  is_enabled: number;
-  origin_price: number;
-  price: number;
+  is_enabled: string;
+  origin_price: string;
+  price: string;
   title: string;
   unit: string;
-  num: number;
+  num: string;
   imageUrl: string;
   imagesUrl: Array<string>;
 };

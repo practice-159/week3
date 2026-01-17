@@ -1,6 +1,12 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 
-const Login = ({ fetchProducts, setIsAuthenticated, axiosInstance }: any) => {
+import type { loginType } from "../types/loginType";
+
+const Login = ({
+  fetchProducts,
+  setIsAuthenticated,
+  axiosInstance,
+}: loginType) => {
   const DEFAULT_EMAIL = import.meta.env.VITE_EMAIL;
   const DEFAULT_PASSWORD = import.meta.env.VITE_PASSWORD;
   const [account, setAccount] = useState<{
@@ -25,7 +31,7 @@ const Login = ({ fetchProducts, setIsAuthenticated, axiosInstance }: any) => {
       const res = await axiosInstance.post(`/v2/admin/signin`, account);
       const { token, expired } = res.data;
       document.cookie = `someCookieName=${token}; expires=${new Date(expired)}`;
-      axiosInstance.defaults.headers.common["Authorization"] = token;
+      // axiosInstance.defaults.headers.common["Authorization"] = token;
       fetchProducts();
       setIsAuthenticated(true);
     } catch (error) {

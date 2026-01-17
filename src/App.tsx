@@ -11,9 +11,6 @@ import Table from "./components/Table";
 const App = () => {
   // week1 - 產品列表
   const [productList, setProductList] = useState<productType[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<productType | null>(
-    null,
-  );
 
   // week2 - .env 的資訊
   const API_BASE_URL = import.meta.env.VITE_API_BASE;
@@ -35,9 +32,11 @@ const App = () => {
         .find((txt) => txt.startsWith("someCookieName="))
         ?.split("=")[1];
       if (token) {
-        axiosInstance.defaults.headers.common["Authorization"] = token;
+        // axiosInstance.defaults.headers.common["Authorization"] = token;
+        const config = { headers: { Authorization: token } };
         const response = await axiosInstance.get(
           `/v2/api/${API_PATH}/admin/products`,
+          config,
         );
         setProductList(response.data.products);
       }
@@ -46,28 +45,32 @@ const App = () => {
     }
   };
 
-  // week2 - 檢查登入狀態api
-  const verifyAuthentication = async () => {
-    try {
-      const token = document.cookie
-        .split(";")
-        .find((txt) => txt.startsWith("someCookieName="))
-        ?.split("=")[1];
-      if (token) {
-        axiosInstance.defaults.headers.common["Authorization"] = token;
-        const response = await axiosInstance.post("/v2/api/user/check");
-        if (response.data.success) {
-          setIsAuthenticated(true);
-          fetchProducts();
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // week2 - 檢查token自動登入
   useEffect(() => {
+    // week2 - 檢查登入狀態api(包含檢查token自動登入)
+    const verifyAuthentication = async () => {
+      try {
+        const token = document.cookie
+          .split(";")
+          .find((txt) => txt.startsWith("someCookieName="))
+          ?.split("=")[1];
+        if (token) {
+          // axiosInstance.defaults.headers.common["Authorization"] = token;
+          const config = { headers: { Authorization: token } };
+          const response = await axiosInstance.post(
+            "/v2/api/user/check",
+            {},
+            config,
+          );
+          if (response.data.success) {
+            setIsAuthenticated(true);
+            fetchProducts();
+          }
+        }
+      } catch (error) {
+        console.log("這裡錯誤物?");
+        console.error(error);
+      }
+    };
     verifyAuthentication();
   }, []);
 
@@ -83,6 +86,8 @@ const App = () => {
     is_enabled: "",
     imageUrl: "",
     imagesUrl: [""],
+    id: "",
+    num: "",
   };
 
   // week3 - Modal控制相關狀態
@@ -124,14 +129,10 @@ const App = () => {
             <div className="col text-center">
               {/* 產品列表 */}
               <Table
-                API_PATH={API_PATH}
                 productList={productList}
                 productModal={productModal}
                 setModalType={setModalType}
-                axiosInstance={axiosInstance}
-                fetchProducts={fetchProducts}
                 setTemplateData={setTemplateData}
-                setSelectedProduct={setSelectedProduct}
                 INITIAL_TEMPLATE_DATA={INITIAL_TEMPLATE_DATA}
               />
               {/* Modal */}
@@ -143,7 +144,6 @@ const App = () => {
                 axiosInstance={axiosInstance}
                 fetchProducts={fetchProducts}
                 productModalRef={productModalRef}
-                selectedProduct={selectedProduct}
                 setTemplateData={setTemplateData}
               />
             </div>
@@ -155,5 +155,3 @@ const App = () => {
 };
 
 export default App;
-
-// 358 > 161

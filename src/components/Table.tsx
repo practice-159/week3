@@ -1,51 +1,20 @@
 import { Fragment } from "react";
 
 import type { productType } from "../types/productType";
-
-// type TableProps = {
-//   productList: Array<productType>;
-//   setSelectedProduct: (p: productType) => void;
-//   deleteProduct: (p: string) => void;
-//   updateProduct: (p: string, data: any) => void;
-//   productModalRef: RefObject<HTMLDivElement | null>;
-//   productModal: RefObject<Modal | null>;
-//   selectedProduct: productType | null;
-//   openModal: () => void;
-// };
+import type { tableType } from "../types/tableType";
 
 const Table = ({
   productList,
-  setSelectedProduct,
   INITIAL_TEMPLATE_DATA,
   productModal,
-  axiosInstance,
   setTemplateData,
   setModalType,
-  API_PATH,
-  fetchProducts,
-}: any) => {
-  // week3 - 移除產品api
-  const deleteProduct = async (id: string) => {
-    try {
-      const token = document.cookie
-        .split(";")
-        .find((txt) => txt.startsWith("someCookieName="))
-        ?.split("=")[1];
-      if (token) {
-        axiosInstance.defaults.headers.common["Authorization"] = token;
-        const response = await axiosInstance.delete(
-          `/v2/api/${API_PATH}/admin/product/${id}`,
-        );
-        // 移除產品後重新發送一次取得產品的request，讓畫面顯示最新的資料
-        fetchProducts();
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
+}: tableType) => {
   // week3 - 開啟 Modal
-  const openModal = (product: any, type: any) => {
+  const openModal = (
+    product: Omit<productType, "id" | "num">,
+    type: string,
+  ) => {
     if (productModal.current) {
       setTemplateData((prevData) => ({ ...prevData, ...product }));
       setModalType(type);
@@ -75,7 +44,6 @@ const Table = ({
             <th scope="col">原價</th>
             <th scope="col">售價</th>
             <th scope="col">是否啟用</th>
-            {/* <th scope="col">查看細節</th> */}
             <th scope="col">編輯</th>
           </tr>
         </thead>
@@ -101,7 +69,6 @@ const Table = ({
                       type="button"
                       className="btn btn-outline-primary btn-sm"
                       onClick={() => {
-                        setSelectedProduct(product);
                         openModal(product, "edit");
                       }}
                     >
@@ -111,7 +78,7 @@ const Table = ({
                       type="button"
                       className="btn btn-outline-danger btn-sm"
                       onClick={() => {
-                        deleteProduct(product.id);
+                        openModal(product, "delete");
                       }}
                     >
                       刪除
