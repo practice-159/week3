@@ -7,14 +7,12 @@ const Login = ({
   setIsAuthenticated,
   axiosInstance,
 }: loginType) => {
-  const DEFAULT_EMAIL = import.meta.env.VITE_EMAIL;
-  const DEFAULT_PASSWORD = import.meta.env.VITE_PASSWORD;
   const [account, setAccount] = useState<{
     username: string;
     password: string;
   }>({
-    username: DEFAULT_EMAIL,
-    password: DEFAULT_PASSWORD,
+    username: "",
+    password: "",
   });
   // week1 - 帳號密碼
   const handleLoginInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
